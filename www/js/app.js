@@ -7,17 +7,16 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $rootScope, $state) {
   $ionicPlatform.ready(function() {
     Parse.initialize('WmzlzH8QGm8uMC0SPOQHpYnLWTGCxpeYOPHQwIiH', 'AJyV0Kj9Y4kVIMmChyxjiL3ibrUgWL8gpfUKlPQ2');
     var currentUser = Parse.User.current();
     $rootScope.user = null;
     $rootScope.isLoggedIn = false;
-
     if (currentUser) {
-        $rootScope.user = currentUser;
-        $rootScope.isLoggedIn = true;
-        $state.go('app.home');
+      $rootScope.user = currentUser;
+      $rootScope.isLoggedIn = true;
+      $state.go('tab.chats');
     }
 
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
