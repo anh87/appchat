@@ -9,6 +9,91 @@ angular.module('starter.controllers', [])
   }
 })
 
+.controller('ChatsCtrl', function($scope, ParseService, $location) {
+
+  // Push Notifications
+  //PushNotes.register();
+
+  $scope.onlineContacts = [];
+  $scope.offlineContacts = [];
+  $scope.finishedLoading = false;
+
+  $scope.doRefresh = function() {
+    ParseService.getContactList(
+      function results(res) {
+        console.log(111);
+        console.log(res);
+        $scope.onlineContacts = [];
+        $scope.offlineContacts = [];
+
+        for(i = 0; i < res.length; i++) {
+          var item = res[i];
+          if (item.attributes.user.attributes.user_state == 1) {
+            $scope.isOnlineContacts = true;
+            $scope.onlineContacts.push(item);
+          } else {
+            $scope.isOfflineContacts = true;
+            $scope.offlineContacts.push(item);
+          }
+        }
+
+        console.log($scope.onlineContacts);
+
+        $scope.$apply();
+        $scope.$broadcast('scroll.refreshComplete');
+      },
+      function fail() {
+        console.log('fail');
+        $scope.$broadcast('scroll.refreshComplete');
+      }
+    )
+  }
+
+    ParseService.currentUser(
+      function win(currentUser) {
+
+        // Update Online Status
+        ParseService.changeStatus(
+          {"user_state": 1},
+          function success(result) {
+            console.log(result);
+          },
+          function fail(result) {
+            console.log('fail');
+          }
+        )
+
+        ParseService.getContactList(
+          function results(res) {
+
+            for(i = 0; i < res.length; i++) {
+              var item = res[i];
+              if (item.attributes.user.attributes.user_state == 1) {
+                $scope.isOnlineContacts = true;
+                $scope.onlineContacts.push(item);
+              } else {
+                $scope.isOfflineContacts = true;
+                $scope.offlineContacts.push(item);
+              }
+            }
+
+            console.log($scope.onlineContacts);
+
+          $scope.finishedLoading = true;
+
+            $scope.$apply();
+          },
+          function fail(err) {
+            console.log('fail');
+          }
+        )
+      },
+      function fail(error) {
+        $location.path("/tab/login");
+      }
+    )
+})
+
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
   $scope.chat = Chats.get($stateParams.chatId);
 })
@@ -22,11 +107,11 @@ angular.module('starter.controllers', [])
     // TODO: add age verification step
 
     $scope.loading = $ionicLoading.show({
-        content: 'Sending',
-        animation: 'fade-in',
-        showBackdrop: true,
-        maxWidth: 200,
-        showDelay: 0
+      content: 'Sending',
+      animation: 'fade-in',
+      showBackdrop: true,
+      maxWidth: 200,
+      showDelay: 0
     });
 
     var user = new Parse.User();
@@ -44,14 +129,12 @@ angular.module('starter.controllers', [])
         });
       },
       error: function(user, error) {
-        console.log(8888);
-        console.log(user);
         $ionicLoading.hide();
         if (error.code === 125) {
             $scope.error.message = 'Please specify a valid email ' +
                 'address';
         } else if (error.code === 202) {
-            $scope.error.message = 'The email address is already ' +
+            $scope.error.message = 'The username is already ' +
                 'registered';
         } else {
             $scope.error.message = error.message;
@@ -63,51 +146,51 @@ angular.module('starter.controllers', [])
 })
 
 
-// .controller('LoginController', function($scope, $state, $rootScope, $ionicLoading) {
-//     $scope.user = {
-//         username: null,
-//         password: null
-//     };
+.controller('LoginCtrl', function($scope, $state, $rootScope, $ionicLoading) {
+  $scope.user = {
+    username: null,
+    password: null
+  };
 
-//     $scope.error = {};
+  $scope.error = {};
 
-//     $scope.login = function() {
-//         $scope.loading = $ionicLoading.show({
-//             content: 'Logging in',
-//             animation: 'fade-in',
-//             showBackdrop: true,
-//             maxWidth: 200,
-//             showDelay: 0
-//         });
+  $scope.login = function() {
+    $scope.loading = $ionicLoading.show({
+      content: 'Logging in',
+      animation: 'fade-in',
+      showBackdrop: true,
+      maxWidth: 200,
+      showDelay: 0
+    });
 
-//         var user = $scope.user;
-//         Parse.User.logIn(('' + user.username).toLowerCase(), user.password, {
-//             success: function(user) {
-//                 $ionicLoading.hide();
-//                 $rootScope.user = user;
-//                 $rootScope.isLoggedIn = true;
-//                 $state.go('app.home', {
-//                     clear: true
-//                 });
-//             },
-//             error: function(user, err) {
-//                 $ionicLoading.hide();
-//                 // The login failed. Check error to see why.
-//                 if (err.code === 101) {
-//                     $scope.error.message = 'Invalid login credentials';
-//                 } else {
-//                     $scope.error.message = 'An unexpected error has ' +
-//                         'occurred, please try again.';
-//                 }
-//                 $scope.$apply();
-//             }
-//         });
-//     };
+    var user = $scope.user;
+    Parse.User.logIn(('' + user.username).toLowerCase(), user.password, {
+      success: function(user) {
+        $ionicLoading.hide();
+        $rootScope.user = user;
+        $rootScope.isLoggedIn = true;
+        $state.go('tab.chats', {
+            clear: true
+        });
+      },
+      error: function(user, err) {
+        $ionicLoading.hide();
+        // The login failed. Check error to see why.
+        if (err.code === 101) {
+            $scope.error.message = 'Invalid login credentials';
+        } else {
+            $scope.error.message = 'An unexpected error has ' +
+                'occurred, please try again.';
+        }
+        $scope.$apply();
+      }
+    });
+  };
 
-//     $scope.forgot = function() {
-//         $state.go('app.forgot');
-//     };
-// })
+  $scope.register = function() {
+      $state.go('signup');
+  };
+})
 
 .controller('AccountCtrl', function($scope) {
   $scope.settings = {
