@@ -99,14 +99,36 @@ angular.module('starter.services', [])
           }
         });
       },
+      getThreadList: function(win, fail){
+        var currentUser = Parse.User.current();
+        var ThreadList = Parse.Object.extend("Thread");
+        var first = new Parse.Query("Thread");
+        first.equalTo('receiver', currentUser.id);
+
+        var second = new Parse.Query("Thread");
+        second.equalTo('sender', currentUser.id);
+
+        var mainQuery = Parse.Query.or(first, second);
+        mainQuery.find({
+          success: function(results) {
+            console.log('or');
+            console.log(results);
+            win(results);
+          },
+          error: function(error) {
+            fail(error)
+          }
+        });
+      },
       getContactList: function(win, fail) {
         var currentUser = Parse.User.current();
-        var ContactList = Parse.Object.extend("User");
-        var query = new Parse.Query(ContactList);
-        // query.include("user");
-        // query.equalTo("user_id", currentUser.id);
+        var UserList = Parse.Object.extend("User");
+        var query = new Parse.Query(UserList);
+        query.notEqualTo("objectId", currentUser.id);
         query.find({
           success: function(results) {
+            console.log('win');
+            console.log(results);
             win(results);
           },
           error: function(error) {
@@ -145,6 +167,8 @@ angular.module('starter.services', [])
         query.descending("createdAt");
         query.find({
           success: function(results) {
+            console.log('results');
+            console.log(results);
             win(results.reverse());
           },
           error: function(error) {
@@ -181,6 +205,50 @@ angular.module('starter.services', [])
   }
 
   return ParseService;
+})
+
+.factory('PusherTrigger', function($http) {
+
+  var PusherTrigger = {
+      triggerEvent: function(obj, win, fail) {
+
+          $http.defaults.headers.common = {};
+          $http.defaults.headers.post = {};
+          $http.defaults.headers.put = {};
+          $http.defaults.headers.patch = {};
+
+          var headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          };
+
+          var baseURL = "http://grega.co";
+
+          $http({
+              method  : "POST",
+              url     : baseURL + obj.url,
+              data    : obj.data  // pass in data as strings
+          }).success(function(data, status) {
+              win(data, status);
+          }).error(function(data, status) {
+              fail(data,status);
+          });
+        }
+    }
+
+    return PusherTrigger;
+})
+
+.factory('UtilFunctions', function($ionicPopup) {
+  var UtilFunctions = {
+      setAlert: function(obj) {
+        var alertPopup = $ionicPopup.alert({
+          "title": obj.title,
+          "template": obj.template,
+        });
+      }
+  }
+
+  return UtilFunctions;
 })
 
 .factory('Chats', function() {

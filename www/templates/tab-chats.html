@@ -10,21 +10,21 @@
   <div ng-show="!finishedLoading" style="margin-top: 50px; text-align: center;">
     <i class="ion-refreshing" style="font-size: 50px;"></i>
   </div>
-    <ion-list>
-      <ion-item ng-repeat="contact in onlineContacts" type="item-text-wrap" href="#/tab/thread/{{contact.attributes.thread_id}}/{{contact.attributes.user.id}}" item="item">
-        {{contact.attributes.user.attributes.display_name}}
+    <ion-list ng-repeat="contact in onlineContacts">
+      <ion-item  type="item-text-wrap" href="#/tab/chats/{{(threadList | filter: { attributes: {sender: contact.id} })[0].id || (threadList | filter: { attributes: {receiver: contact.id}  })[0].id }}/{{contact.id}}" item="item">
+        {{contact.attributes.username}}
         <i class="icon ion-chevron-right far-right"></i>
-        <span class="item-note">
-          Last Active: {{ contact.attributes.user.updatedAt }}
-        </span>
       </ion-item>
     </ion-list>
     <div class="item item-divider" ng-show="isOfflineContacts">
       Offline
     </div>
-  <ion-list>
-      <ion-item ng-repeat="contact in offlineContacts" type="item-text-wrap" href="#/tab/thread/{{contact.attributes.thread_id}}/{{contact.attributes.user.id}}">
-        {{contact.attributes.user.attributes.display_name}}
+  <ion-list ng-repeat="contact in offlineContacts">
+      <ion-item  type="item-text-wrap" href="#/tab/chats/{{(threadList | filter: { attributes: {sender: contact.id} })[0].id || (threadList | filter: { attributes: {receiver: contact.id}  })[0].id }}/{{contact.id}}">
+        {{contact.attributes.username}}
+        <i class="icon ion-chevron-right far-right"></i>
+        <span class="item-note" am-time-ago="contact.updatedAt "></span>
+        <span class="item-note">Last Active: </span>
       </ion-item>
     </ion-list>
   </ion-content>
